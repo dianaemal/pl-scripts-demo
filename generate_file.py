@@ -163,13 +163,13 @@ class QuestionGenerator:
        pass
 
 
-    def generate_question_folder(self,html_content,  info_content, context, py_content=None):
+    def generate_question_folder(self,html_content,  info_content, context, py_content=None, folder_path=None):
         """Generates question artifacts and saves them in their respective folders."""
 
         
-        title = context["title"].strip()
+        """ title = context["title"].strip()
         name = title.replace(" ", "_")
-        folder_path = f"{name}"  # Each question has its own folder
+        folder_path = f"{name}"  # Each question has its own folder """
 
         # Create the folder if it doesn't exist
         os.makedirs(folder_path, exist_ok=True)
@@ -210,10 +210,22 @@ generator = QuestionGenerator()
 for q in questions:
     context = q.create_context()
     print(context)
+    question_type = "String Input"
+    type_folder = question_type.replace(" ", "_")
+    os.makedirs(type_folder, exist_ok=True)
+
+    title = context["title"].strip()
+    name = title.replace(" ", "_")
+    folder_path = f"{name}"
+
+    qusetion_folder = os.path.join(type_folder, folder_path)
+
+
     html_ = template_manager.render_files('MC', context)
     info = template_manager.render_files('IJ', context)
 
-    generator.generate_question_folder(html_, info, context)
+    generator.generate_question_folder(html_, info, context, folder_path=qusetion_folder)
+
 for q in questions2:
     context = q.create_context()
     print(context)
