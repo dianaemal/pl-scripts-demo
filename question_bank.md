@@ -12,6 +12,7 @@ optionE : Black
 tags: math, easy
 ###
 id: q2
+type: MCQ
 question: Which of these are colors?
 *optionA: Red
 optionB: Blue
