@@ -43,6 +43,7 @@ class Question:
             context["question"] = self.question.strip()
 
         context["title"] = self.title
+        context["type"] = self.type
         context["topic"] = self.topic
         context["id"] = self.id
         context["uuid"] = self.uuid
@@ -202,36 +203,37 @@ class QuestionGenerator:
 
 q = QuestionBank("String Input", "question_bank.md")
 q2 = QuestionBank("MCQ", "question_bank2.md")
+banks = [q, q2]
 questions = q.get_questions()
 questions2 = q2.get_questions()
 template_manager = TemplateManager("template.md")
 generator = QuestionGenerator()
 
-for q in questions:
-    context = q.create_context()
-    print(context)
-    question_type = "String Input"
-    type_folder = question_type.replace(" ", "_")
-    os.makedirs(type_folder, exist_ok=True)
+for bank in banks:
+    questions = bank.get_questions()
+    for q in questions:
+        context = q.create_context()
+        print(context)
+        
+        question_type = context["type"]
+        topic = context["topic"] 
 
-    title = context["title"].strip()
-    name = title.replace(" ", "_")
-    folder_path = f"{name}"
+        type_folder = question_type.replace(" ", "_")
+        topic_folder = topic.replace(" ", "_")
+        title = context["title"].strip().replace(" ", "_")
 
-    qusetion_folder = os.path.join(type_folder, folder_path)
+        question_folder = os.path.join(topic_folder, type_folder, title)
+        os.makedirs(question_folder, exist_ok=True)
 
-
-    html_ = template_manager.render_files('MC', context)
-    info = template_manager.render_files('IJ', context)
-
-    generator.generate_question_folder(html_, info, context, folder_path=qusetion_folder)
-
-for q in questions2:
-    context = q.create_context()
-    print(context)
-    html_, py = template_manager.render_files('SI', context)
-    info = template_manager.render_files('IJ', context)
-    generator.generate_question_folder(html_, info, context, py.replace("```", ""))
+        if question_type == "MCQ":
+            html_ = template_manager.render_files('MC', context)
+            info = template_manager.render_files('IJ', context)
+            generator.generate_question_folder(html_, info, context, folder_path=question_folder)
+        
+        elif question_type == "String Input":
+            html_, py = template_manager.render_files('SI', context)
+            info = template_manager.render_files('IJ', context)
+            generator.generate_question_folder(html_, info, context, py.replace("```", ""), folder_path=question_folder)
 
    
  
