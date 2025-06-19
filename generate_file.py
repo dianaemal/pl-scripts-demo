@@ -8,6 +8,7 @@ import time
 import shutil
 import json
 import uuid
+import argparse
 
 class Question:
 
@@ -44,6 +45,7 @@ class Question:
 
         context["title"] = self.title
         context["topic"] = self.topic
+        context["type"] = self.type
         context["id"] = self.id
         context["uuid"] = self.uuid
         if self.type == 'String Input':
@@ -166,14 +168,14 @@ class QuestionGenerator:
     def generate_question_folder(self,html_content,  info_content, context, py_content=None):
         """Generates question artifacts and saves them in their respective folders."""
 
-        
-        title = context["title"].strip()
-        name = title.replace(" ", "_")
-        folder_path = f"{name}"  # Each question has its own folder
+        title = context["title"].strip().replace(" ", "_")
+        topic = context["topic"].strip().replace(" ", "_")
+        qtype = context["type"].strip().replace(" ", "_")
 
-        # Create the folder if it doesn't exist
+        folder_path = os.path.join(topic, qtype, title)
         os.makedirs(folder_path, exist_ok=True)
         print(f"Generating files in: {folder_path}")
+       
 
         # Define file paths inside the folder
         html_filename = os.path.join(folder_path, "question.html")
@@ -197,69 +199,42 @@ class QuestionGenerator:
 
 
 
+parser = argparse.ArgumentParser(description="Generate PrairieLearn questions.")
+parser.add_argument("--mode", required=True, choices=["all", "topic", "topic_qtype"], help="Generation mode")
+parser.add_argument("--topic", help="Topic name")
+parser.add_argument("--qtype", help="Question type (e.g., MCQ, String Input)")
+args = parser.parse_args()
 
+question_banks = [
+    QuestionBank("String Input", "question_bank.md"),
+    QuestionBank("MCQ", "question_bank2.md")
+]
 
-
-q = QuestionBank("String Input", "question_bank.md")
-q2 = QuestionBank("MCQ", "question_bank2.md")
-questions = q.get_questions()
-questions2 = q2.get_questions()
 template_manager = TemplateManager("template.md")
 generator = QuestionGenerator()
 
-for q in questions:
-    context = q.create_context()
-    print(context)
-    html_ = template_manager.render_files('MC', context)
-    info = template_manager.render_files('IJ', context)
+for bank in question_banks:
+    for question in bank.get_questions():
+        qtype = question.type.strip().lower()
+        topic = question.topic.strip().lower()
 
-    generator.generate_question_folder(html_, info, context)
-for q in questions2:
-    context = q.create_context()
-    print(context)
-    html_, py = template_manager.render_files('SI', context)
-    info = template_manager.render_files('IJ', context)
-    generator.generate_question_folder(html_, info, context, py.replace("```", ""))
+        # Filtering logic
+        if args.mode == "topic" and topic != args.topic.strip().lower():
+            continue
+        elif args.mode == "topic_qtype" and (topic != args.topic.strip().lower() or qtype != args.qtype.strip().lower()):
+            continue
 
-   
- 
-      
-        
-        
-            
-        
-          
-            
+        context = question.create_context()
 
-  
+        if question.type == "MCQ":
+            html = template_manager.render_files("MC", context)
+            info = template_manager.render_files("IJ", context)
+            generator.generate_question_folder(html, info, context)
 
-            
+        elif question.type == "String Input":
+            html, py = template_manager.render_files("SI", context)
+            info = template_manager.render_files("IJ", context)
+            generator.generate_question_folder(html, info, context, py_content=py.replace("```", ""))
 
-      
-        
-        
-            
-        
-           
-
-        
-
-
-
-
-
-
-        
-
-
-
-
-    
-
-
-
-
-
-
-
-
+        else:
+            print(f"Skipping unsupported type: {question.type}")

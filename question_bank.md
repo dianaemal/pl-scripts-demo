@@ -21,5 +21,18 @@ optionE : Black
 title: Color Identification
 topic: Basics
 tags: color, general
+type: MCQ
+###
+id: q3
+question: Which of these are colors?
+*optionA: Red
+optionB: Blue
+optionC: Table
+optionD : White
+optionE : Black
+title: Color Identification
+topic: WWW
+tags: color, general
+type: MCQ
 ###
 
